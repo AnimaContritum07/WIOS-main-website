@@ -1,0 +1,105 @@
+import Image from "next/image";
+
+const STAGE_W = 801;
+const STAGE_H = 732;
+const EXTRA_TILT = -10;
+
+export default function AboutVitAp() {
+  return (
+    <section className="relative w-full overflow-hidden bg-white">
+      <div className="relative mx-auto flex min-h-[680px] max-w-[1512px] items-center py-20">
+        <div className="relative z-10 max-w-[680px] px-8 sm:px-16 lg:pl-[66px]">
+          <h2 className="font-bebas text-[76px] leading-[0.95] text-black">
+            ABOUT
+            <br />
+            VIT -AP
+          </h2>
+
+          <p className="mt-4 text-[34px] leading-none text-black">
+            <span className="font-playfair">An University built for </span>
+            <span className="font-cedarville">whats next.</span>
+          </p>
+
+          <p className="mt-8 max-w-[560px] font-playfair text-[32px] leading-relaxed text-black">
+            Vellore Institute of Technology, Andhra Pradesh (VIT-AP) University is
+            a state private university located in Amaravati, the capital of Andhra
+            Pradesh, India.
+          </p>
+
+          <a
+            href="http://vitap.ac.in/"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-12 inline-flex items-center gap-4 rounded-[25px] bg-[#7186C7] py-[14px] pl-[24px] pr-[24px] font-poppins text-[16px] text-white"
+          >
+            DISCOVER VIT-AP
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
+        </div>
+
+        <div
+          className="pointer-events-none absolute right-0 top-1/2 [container-type:inline-size]"
+          style={{
+            width: "clamp(390px, 49vw, 850px)",
+            aspectRatio: `${STAGE_W} / ${STAGE_H}`,
+            transform: "translate(25%, -50%)",
+          }}
+        >
+          <div
+            className="absolute left-0 top-0 origin-top-left"
+            style={{
+              width: STAGE_W,
+              height: STAGE_H,
+              transform: `scale(calc(100cqw / ${STAGE_W}))`,
+            }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{ transform: `rotate(${EXTRA_TILT}deg)` }}
+            >
+              <div
+                className="absolute left-0 top-0 flex items-center justify-center"
+                style={{ width: STAGE_W, height: STAGE_H }}
+              >
+                <div className="flex-none rotate-[38.36deg]">
+                  <div
+                    className="rounded-[170px] bg-[#4B5FA8]"
+                    style={{ width: 756.219, height: 335.206 }}
+                  />
+                </div>
+              </div>
+
+              <div
+                className="absolute flex items-center justify-center"
+                style={{ left: 83.8, top: 84.8, width: 300.934, height: 300.932 }}
+              >
+                <div
+                  className="flex-none"
+                  style={{ transform: `rotate(${-EXTRA_TILT}deg)` }}
+                >
+                  <div className="relative h-[293.677px] w-[293.68px] overflow-hidden rounded-full">
+                    <Image
+                      src="/vitap.png"
+                      alt="VIT-AP campus"
+                      fill
+                      className="object-cover"
+                      sizes="300px"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

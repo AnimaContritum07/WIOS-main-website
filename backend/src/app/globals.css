@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-poppins: "Poppins", sans-serif;
+  --font-phetsarath: "Phetsarath", sans-serif;
+  --font-bebas: "Bebas Neue", sans-serif;
+  --font-playfair: "Playfair Display", serif;
+  --font-cedarville: "Cedarville Cursive", cursive;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+@keyframes ring-pulse {
+  from {
+    transform: translateX(calc(-1 * var(--rw)));
+  }
+  to {
+    transform: translateX(var(--rw));
+  }
+}
+
+.explore-btn {
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 26px;
+  background: linear-gradient(90deg, #d9c0f8 0%, #a7baef 100%);
+  box-shadow: 0 0 25px rgba(167, 186, 239, 0.6);
+  transition: box-shadow 0.5s;
+}
+
+.explore-btn:hover {
+  box-shadow:
+    0 0 5px rgba(167, 186, 239, 0.8),
+    0 0 25px rgba(167, 186, 239, 0.8),
+    0 0 50px rgba(167, 186, 239, 0.6),
+    0 0 100px rgba(167, 186, 239, 0.4);
+}
+
+.explore-btn--ghost {
+  background: linear-gradient(
+    90deg,
+    rgba(217, 192, 248, 0.2) 0%,
+    rgba(167, 186, 239, 0.2) 100%
+  );
+  box-shadow: 0 0 15px rgba(217, 192, 248, 0.3);
+}
+
+.explore-btn--ghost:hover {
+  box-shadow:
+    0 0 5px rgba(217, 192, 248, 0.5),
+    0 0 20px rgba(217, 192, 248, 0.5),
+    0 0 40px rgba(217, 192, 248, 0.4);
+}
