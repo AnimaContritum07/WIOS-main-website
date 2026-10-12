@@ -5,6 +5,7 @@ import {
   Bebas_Neue,
   Playfair_Display,
   Cedarville_Cursive,
+  Playpen_Sans,
 } from "next/font/google";
 import "./globals.css";
 
@@ -38,6 +39,12 @@ const cedarville = Cedarville_Cursive({
   variable: "--font-cedarville",
 });
 
+const playpenSans = Playpen_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-playpen",
+});
+
 export const metadata: Metadata = {
   title: "WIOS",
   description: "WIOS event platform",
@@ -51,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${phetsarath.variable} ${bebasNeue.variable} ${playfair.variable} ${cedarville.variable}`}
+      className={`${poppins.variable} ${phetsarath.variable} ${bebasNeue.variable} ${playfair.variable} ${cedarville.variable} ${playpenSans.variable}`}
     >
       <body className="font-poppins">{children}</body>
     </html>
