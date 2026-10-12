@@ -9,10 +9,25 @@
   --font-playpen: "Playpen Sans", cursive;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
+}
+
+::selection {
+  background: #d9c0f8;
+  color: #000;
+}
+
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
 }
 
 @keyframes ring-pulse {

@@ -19,6 +19,7 @@ const phetsarath = Phetsarath({
   subsets: ["lao"],
   weight: ["400", "700"],
   variable: "--font-phetsarath",
+  adjustFontFallback: false,
 });
 
 const bebasNeue = Bebas_Neue({

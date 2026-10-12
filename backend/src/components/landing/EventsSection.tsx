@@ -1,3 +1,5 @@
+import Reveal from "./Reveal";
+
 type EventItem = {
   title: string;
   description: string;
@@ -119,17 +121,20 @@ export default function EventsSection() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-[1200px] px-8 sm:px-16">
-        <h2 className="font-bebas text-[60px] leading-[0.95] text-black">
-          LATEST EVENTS
-        </h2>
-        <p className="mt-1 font-cedarville text-[40px] leading-tight text-[#8D7FB5]">
-          Whats happening -
-        </p>
+        <Reveal>
+          <h2 className="font-bebas text-[60px] leading-[0.95] text-black">
+            LATEST EVENTS
+          </h2>
+          <p className="mt-1 font-cedarville text-[40px] leading-tight text-[#8D7FB5]">
+            Whats happening -
+          </p>
+        </Reveal>
 
         <div className="mt-10 flex flex-col gap-12">
-          {EVENTS.map((event) => (
-            <div
+          {EVENTS.map((event, i) => (
+            <Reveal
               key={event.title}
+              delay={i * 0.12}
               className="flex flex-col gap-8 lg:flex-row lg:items-center"
             >
               <EventImagePlaceholder />
@@ -161,7 +166,7 @@ export default function EventsSection() {
                 VIEW EVENT
                 <ArrowIcon />
               </a>
-            </div>
+            </Reveal>
           ))}
         </div>
 

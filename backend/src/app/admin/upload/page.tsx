@@ -1,1 +1,4 @@
-// Intentionally blank starter file. Add implementation here.
+// Starter file. Implement here.
+export default function Page() {
+  return null;
+}

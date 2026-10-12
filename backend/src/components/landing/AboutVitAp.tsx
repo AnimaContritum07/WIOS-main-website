@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Reveal from "./Reveal";
 
 const STAGE_W = 801;
 const STAGE_H = 732;
@@ -8,7 +9,7 @@ export default function AboutVitAp() {
   return (
     <section className="relative w-full overflow-hidden bg-white">
       <div className="relative mx-auto flex min-h-[680px] max-w-[1512px] items-center py-20">
-        <div className="relative z-10 max-w-[680px] px-8 sm:px-16 lg:pl-[66px]">
+        <Reveal className="relative z-10 max-w-[680px] px-8 sm:px-16 lg:pl-[66px]">
           <h2 className="font-bebas text-[76px] leading-[0.95] text-black">
             ABOUT
             <br />
@@ -43,7 +44,7 @@ export default function AboutVitAp() {
               />
             </svg>
           </a>
-        </div>
+        </Reveal>
 
         <div
           className="pointer-events-none absolute right-0 top-1/2 [container-type:inline-size]"
