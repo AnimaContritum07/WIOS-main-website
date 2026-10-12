@@ -2,24 +2,18 @@ const NAV_LINKS = ["ABOUT US", "EVENTS", "GALLERY", "MEET OUR TEAM", "CONTACT"];
 
 export default function Navbar() {
   return (
-    <header className="absolute inset-x-0 top-0 z-20 flex items-center gap-6 px-8 py-6">
-      <button
-        aria-label="Menu"
-        className="flex flex-col gap-[5px] rounded-md bg-black/80 p-3"
-      >
-        <span className="block h-[2px] w-6 bg-white" />
-        <span className="block h-[2px] w-6 bg-white" />
-        <span className="block h-[2px] w-6 bg-white" />
-      </button>
-
-      <nav className="mx-auto flex items-center gap-10 rounded-full bg-white/90 px-12 py-4 shadow-lg backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-20 flex items-center justify-center px-8 py-6">
+      <nav className="flex items-center gap-10 rounded-full bg-white/90 px-12 py-4 shadow-lg backdrop-blur">
         {NAV_LINKS.map((link) => (
           <a
             key={link}
             href="#"
-            className="font-poppins text-xs font-bold text-black transition-opacity hover:opacity-60"
+            className="group relative font-poppins text-xs font-bold text-black"
           >
-            {link}
+            <span className="inline-block transition-transform duration-200 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover:-translate-y-[2px]">
+              {link}
+            </span>
+            <span className="absolute -bottom-1 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-black transition-all duration-200 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover:w-full" />
           </a>
         ))}
       </nav>

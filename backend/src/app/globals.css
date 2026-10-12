@@ -6,6 +6,7 @@
   --font-bebas: "Bebas Neue", sans-serif;
   --font-playfair: "Playfair Display", serif;
   --font-cedarville: "Cedarville Cursive", cursive;
+  --font-playpen: "Playpen Sans", cursive;
 }
 
 html,
@@ -50,6 +51,23 @@ body {
     rgba(167, 186, 239, 0.2) 100%
   );
   box-shadow: 0 0 15px rgba(217, 192, 248, 0.3);
+}
+
+@keyframes blob-path {
+  0%,
+  100% {
+    d: path("M200,0 L600,0 L600,340 C500,380 430,300 360,270 C280,235 215,250 190,180 C168,118 250,90 205,45 C190,30 180,18 200,0 Z");
+  }
+  33% {
+    d: path("M200,0 L600,0 L600,310 C510,360 445,285 375,255 C300,222 205,270 185,195 C165,128 265,95 212,52 C196,34 172,14 200,0 Z");
+  }
+  66% {
+    d: path("M200,0 L600,0 L600,360 C495,395 420,315 350,282 C270,245 225,235 195,165 C172,108 240,85 200,40 C185,26 188,22 200,0 Z");
+  }
+}
+
+.blob-path {
+  animation: blob-path 28s ease-in-out infinite;
 }
 
 .explore-btn--ghost:hover {

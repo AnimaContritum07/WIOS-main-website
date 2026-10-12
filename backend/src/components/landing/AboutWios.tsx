@@ -82,7 +82,7 @@ export default function AboutWios() {
           <p className="mt-8 max-w-[560px] font-playfair text-[30px] leading-relaxed text-black">
             WIOS (Women in Open Source) empowers students through open-source
             learning, workshops, hackathons and technical bootcamps. We foster
-            an inclusive community where students can develop skills in AI,
+            an inclusive community where students can develop skills in AI, Development,
             Machine Learning, Data Analytics and other emerging technologies.
           </p>
 
