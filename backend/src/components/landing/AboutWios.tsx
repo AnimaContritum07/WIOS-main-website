@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Reveal from "./Reveal";
 
 const STAGE_W = 801;
 const STAGE_H = 732;
@@ -68,7 +69,7 @@ export default function AboutWios() {
           </div>
         </div>
 
-        <div className="relative z-10 ml-auto max-w-[680px] px-8 sm:px-16 lg:pr-[66px]">
+        <Reveal className="relative z-10 ml-auto max-w-[680px] px-8 sm:px-16 lg:pr-[66px]">
           <h2 className="font-bebas text-[60px] leading-[0.95] text-black">
             ABOUT WIOS
           </h2>
@@ -102,7 +103,7 @@ export default function AboutWios() {
               />
             </svg>
           </a>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
