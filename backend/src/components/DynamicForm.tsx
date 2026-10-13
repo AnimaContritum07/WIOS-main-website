@@ -11,7 +11,7 @@ type Answers = Record<string, string | string[]>;
 export default function DynamicForm({ event }: { event: EventDoc }) {
   const accent = event.theme?.accent ?? "#8D7FB5";
   const split = event.theme?.layout === "split";
-  const banner = event.theme?.banner ?? event.bannerUrl;
+  const banner = event.theme?.poster ?? event.bannerUrl;
 
   const { user, ready, submitting, error, signIn, submit, prefill } = useRegister(
     event.slug,

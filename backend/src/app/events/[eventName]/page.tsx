@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEvent } from "@/lib/events";
+import { getOverride } from "@/components/events/registry";
 
 export const runtime = "nodejs";
 
@@ -11,15 +12,18 @@ export default async function EventPage({ params }: Props) {
   const event = await getEvent(eventName);
   if (!event || event.status === "draft") notFound();
 
+  const Override = getOverride(event.slug, "details");
+  if (Override) return <Override event={event} />;
+
   const accent = event.theme?.accent ?? "#8D7FB5";
-  const banner = event.theme?.banner ?? event.bannerUrl;
+  const poster = event.theme?.poster ?? event.bannerUrl;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-6 py-16">
-      {banner && (
+      {poster && (
         <div
           className="h-56 w-full rounded-2xl bg-cover bg-center"
-          style={{ backgroundImage: `url(${banner})` }}
+          style={{ backgroundImage: `url(${poster})` }}
         />
       )}
       <h1 className="font-bebas text-5xl leading-none text-black">{event.title}</h1>

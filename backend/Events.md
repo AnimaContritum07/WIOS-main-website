@@ -7,7 +7,7 @@ Firestore. People sign in with Google once and register for any event.
 There are three ways to control how an event's registration page looks, from
 zero effort to full code control:
 
-1. **Theme only** (no code): pick an accent colour, layout, and banner in the admin UI.
+1. **Theme only** (no code): pick an accent colour, layout, and poster link in the admin UI.
 2. **Custom component** (some code): write your own page, reuse the `useRegister` hook.
 3. **Raw API** (full control): call the register endpoint yourself however you like.
 
@@ -40,7 +40,7 @@ More on these below.
    - **Status** - `draft` (hidden), `open` (accepting registrations), or
      `closed` (visible but no new signups).
    - **Theme** - accent colour, layout (`centered` or `split`), and an optional
-     banner image URL.
+     poster link (image URL shown on the event and register pages).
 4. Add your questions with **+ Add field**, or reuse one from an earlier event with
    **Reuse earlier field** (see "Reusable fields and autofill" below). For each field:
    - **Label** - the question text, e.g. "Registration number".
@@ -134,15 +134,15 @@ fieldKeys/{globalId}
 
 ## Customising the registration UI
 
-These options apply to the **registration page** (`/events/[slug]/register`). The event
-**details page** (`/events/[slug]`) is not code-overridable; it always uses the theme
-(accent, banner, description, layout). If you need a fully custom details page too, the
-same registry pattern can be added there (ask / extend `getOverride`).
+You can override any of four pages per event with your own React component: the event
+**details** page, the **register** page, the **success** page, and the
+**already-registered** page. Each override receives `{ event }`. Pages you do not
+override keep the default themed version.
 
 ### 1. Theme only (no code)
 
 The default form (`DynamicForm`) reads the event's `theme` and renders every field
-automatically. Just set the accent, layout, and banner in the admin UI. This is
+automatically. Just set the accent, layout, and poster link in the admin UI. This is
 enough for most events.
 
 ### 2. Custom component (your own page, shared plumbing)
@@ -207,19 +207,27 @@ What the hook returns:
 | `error` | an error message string, or `null` |
 | `prefill` | remembered answers keyed by local field id; seed your inputs from this for autofill |
 
-**Step 3.** Register the component against the slug:
+**Step 3.** Register the component against the slug and the page (surface) you want to
+override:
 
 ```ts
 // src/components/events/registry.ts
 import HackathonForm from "./hackathon";
+import HackathonLanding from "./hackathon-landing";
 
 export const EVENT_OVERRIDES = {
-  hackathon: HackathonForm,
+  hackathon: {
+    register: HackathonForm,
+    details: HackathonLanding,
+    // success: HackathonDone,
+    // alreadyRegistered: HackathonAlready,
+  },
 };
 ```
 
-Now `/events/hackathon/register` renders your component. Every other event keeps using the
-default form. The event page, admin table, and export are unchanged.
+Surfaces you can override: `details` (`/events/[slug]`), `register`
+(`/events/[slug]/register`), `success`, and `alreadyRegistered`. Any surface you leave
+out uses the default themed page. The admin table and export are unaffected.
 
 ### 3. Raw API (full control)
 
@@ -270,3 +278,6 @@ This keeps the schema and the export in one place while letting the look be anyt
 | `GET /api/admin/events` | admin | List all events including drafts |
 | `GET /api/admin/fields` | admin | List reusable fields (the key catalog) |
 | `PATCH /api/admin/fields/[globalId]` | admin | Rename a field key's label |
+| `GET /api/admin/admins` | admin | List admin emails (env + added) |
+| `POST /api/admin/admins` | admin | Add an admin email |
+| `DELETE /api/admin/admins/[email]` | admin | Remove an added admin email |

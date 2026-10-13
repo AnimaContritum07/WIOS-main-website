@@ -12,6 +12,6 @@ export default async function RegisterPage({ params }: Props) {
   const event = await getEvent(eventName);
   if (!event || event.status === "draft") notFound();
 
-  const Override = getOverride(event.slug);
+  const Override = getOverride(event.slug, "register");
   return Override ? <Override event={event} /> : <DynamicForm event={event} />;
 }

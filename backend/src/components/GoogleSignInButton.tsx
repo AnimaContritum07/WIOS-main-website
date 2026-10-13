@@ -1,16 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signInWithGoogle, signOutUser } from "@/lib/firebase-client";
+import {
+  currentIdToken,
+  onAuthChange,
+  signInWithGoogle,
+  signOutUser,
+} from "@/lib/firebase-client";
 
 type Me = { email: string; role: string; name: string | null } | null;
 
 export default function GoogleSignInButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [user, setUser] = useState<Me>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Restore existing session on load
+  useEffect(() => {
+    return onAuthChange(async (u) => {
+      if (!u) {
+        setUser(null);
+        setChecking(false);
+        return;
+      }
+      const token = await currentIdToken();
+      if (token) {
+        const res = await fetch("/api/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setUser(data.user);
+      }
+      setChecking(false);
+    });
+  }, []);
 
   async function handleSignIn() {
     setLoading(true);
@@ -37,15 +64,41 @@ export default function GoogleSignInButton() {
     setUser(null);
   }
 
-  if (user) {
+  if (checking) {
     return (
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-2 py-2">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-[#8D7FB5]/30 border-t-[#8D7FB5]" />
+        <p className="font-poppins text-xs text-black/40">Checking session...</p>
+      </div>
+    );
+  }
+
+  if (user) {
+    const btn =
+      "rounded-full px-6 py-3 font-poppins text-sm font-bold text-white text-center";
+    return (
+      <div className="flex w-full flex-col items-center gap-4">
         <p className="font-poppins text-sm text-black">
           {user.name ?? user.email}
           <span className="ml-2 rounded-full bg-[#8D7FB5]/15 px-2 py-0.5 text-xs font-bold text-[#8D7FB5]">
             {user.role}
           </span>
         </p>
+
+        <div className="flex w-full flex-col gap-2">
+          {user.role === "admin" && (
+            <Link href="/admin/events" className={`${btn} bg-[#8D7FB5]`}>
+              Go to admin dashboard
+            </Link>
+          )}
+          <Link
+            href="/events"
+            className={`${btn} border border-[#8D7FB5] bg-white !text-[#8D7FB5]`}
+          >
+            Browse events
+          </Link>
+        </div>
+
         <button
           onClick={handleSignOut}
           className="font-poppins text-xs font-bold text-[#8D7FB5] underline"

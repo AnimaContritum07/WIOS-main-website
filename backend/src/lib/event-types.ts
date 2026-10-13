@@ -54,7 +54,7 @@ export type EventStatus = "draft" | "open" | "closed";
 
 export interface EventTheme {
   accent: string;
-  banner?: string;
+  poster?: string;
   layout: "centered" | "split";
 }
 

@@ -2,6 +2,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { auth, db } from "@/config/firebase";
 import { isAdminEmail } from "@/config/admins";
+import { isDbAdminEmail } from "./admin-emails";
 import { HttpError } from "./http";
 
 export type Role = "user" | "admin";
@@ -42,8 +43,8 @@ export async function ensureUser(req: Request): Promise<UserProfile> {
   const ref = db.collection("users").doc(uid);
   const snap = await ref.get();
 
-  const storedRole = (snap.get("role") as Role | undefined) ?? "user";
-  const role: Role = isAdminEmail(email) ? "admin" : storedRole;
+  const isAdmin = isAdminEmail(email) || (await isDbAdminEmail(email));
+  const role: Role = isAdmin ? "admin" : "user";
   const now = Timestamp.now();
 
   if (!snap.exists) {

@@ -45,13 +45,21 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
   const [description, setDescription] = useState(initial?.description ?? "");
   const [status, setStatus] = useState<string>(initial?.status ?? "draft");
   const [accent, setAccent] = useState(initial?.theme?.accent ?? "#8D7FB5");
-  const [banner, setBanner] = useState(initial?.theme?.banner ?? "");
+  const [poster, setPoster] = useState(initial?.theme?.poster ?? "");
   const [layout, setLayout] = useState<string>(initial?.theme?.layout ?? "centered");
   const [fields, setFields] = useState<FormField[]>(initial?.fields ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [library, setLibrary] = useState<FieldLibraryItem[] | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function copyFields() {
+    const text = fields.map((f) => `${f.label || "(untitled)"} - ${f.id}`).join("\n");
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   async function openLibrary() {
     setShowLibrary(true);
@@ -94,7 +102,7 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
         title,
         description,
         status,
-        theme: { accent, layout, ...(banner ? { banner } : {}) },
+        theme: { accent, layout, ...(poster ? { poster } : {}) },
         fields: fields.map((f) => ({
           ...f,
           options: OPTION_TYPES.includes(f.type) ? f.options : undefined,
@@ -168,15 +176,26 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
           </label>
           <input
             className={input}
-            placeholder="Banner image URL"
-            value={banner}
-            onChange={(e) => setBanner(e.target.value)}
+            placeholder="Poster link"
+            value={poster}
+            onChange={(e) => setPoster(e.target.value)}
           />
         </div>
       </div>
 
       <div className="flex flex-col gap-4">
-        <h2 className="font-poppins text-sm font-bold text-black/70">Fields</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-poppins text-sm font-bold text-black/70">Fields</h2>
+          {fields.length > 0 && (
+            <button
+              type="button"
+              onClick={copyFields}
+              className="font-poppins text-xs font-bold text-[#8D7FB5]"
+            >
+              {copied ? "Copied!" : "Copy field ids"}
+            </button>
+          )}
+        </div>
         {fields.map((field, i) => (
           <div key={i} className="flex flex-col gap-2 rounded-xl border border-black/10 p-4">
             <div className="flex gap-2">

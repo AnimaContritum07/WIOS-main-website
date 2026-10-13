@@ -34,7 +34,7 @@ const fieldSchema = z
 
 const themeSchema = z.object({
   accent: z.string().min(1).default("#8D7FB5"),
-  banner: z.string().url().optional(),
+  poster: z.string().url().optional(),
   layout: z.enum(["centered", "split"]).default("centered"),
 });
 
