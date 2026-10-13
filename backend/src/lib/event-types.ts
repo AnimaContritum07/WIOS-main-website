@@ -32,12 +32,22 @@ export const OPTION_TYPES: FieldType[] = ["select", "radio", "checkbox"];
 
 export interface FormField {
   id: string;
+  globalId: string;
   type: FieldType;
   label: string;
   required: boolean;
   placeholder?: string;
   helpText?: string;
   options?: string[];
+}
+
+export interface FieldLibraryItem {
+  globalId: string;
+  label: string;
+  type: FieldType;
+  options?: string[];
+  suggestedId: string;
+  usedIn: number;
 }
 
 export type EventStatus = "draft" | "open" | "closed";

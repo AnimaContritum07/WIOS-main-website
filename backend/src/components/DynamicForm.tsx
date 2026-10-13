@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { EventDoc } from "@/lib/event-types";
 import { useRegister } from "@/lib/useRegister";
 import FieldRenderer from "./fields/FieldRenderer";
@@ -13,8 +13,16 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
   const split = event.theme?.layout === "split";
   const banner = event.theme?.banner ?? event.bannerUrl;
 
-  const { user, ready, submitting, error, signIn, submit } = useRegister(event.slug);
+  const { user, ready, submitting, error, signIn, submit, prefill } = useRegister(
+    event.slug,
+  );
   const [answers, setAnswers] = useState<Answers>({});
+
+  // Seed untouched fields with remembered answers
+  useEffect(() => {
+    if (Object.keys(prefill).length === 0) return;
+    setAnswers((prev) => ({ ...prefill, ...prev }));
+  }, [prefill]);
 
   function setAnswer(id: string, value: string | string[]) {
     setAnswers((prev) => ({ ...prev, [id]: value }));

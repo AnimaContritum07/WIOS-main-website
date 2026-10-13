@@ -41,11 +41,15 @@ More on these below.
      `closed` (visible but no new signups).
    - **Theme** - accent colour, layout (`centered` or `split`), and an optional
      banner image URL.
-4. Add your questions with **+ Add field**. For each field you set:
+4. Add your questions with **+ Add field**, or reuse one from an earlier event with
+   **Reuse earlier field** (see "Reusable fields and autofill" below). For each field:
    - **Label** - the question text, e.g. "Registration number".
    - **Type** - see the list below.
-   - **Field id** - a short code used in exports and custom code, e.g. `reg_number`.
-     It is auto-filled but you can rename it to something readable.
+   - **Field id** (local id) - a short code used in exports and custom code, e.g.
+     `reg_number`. Auto-filled, but you can rename it to something readable. Unique
+     within this event.
+   - **global id** - shown muted under the field id. Auto-generated and shared when you
+     reuse a field across events. This is the key that powers autofill. You never type it.
    - **Required** - whether the field must be filled.
    - **Options** - only for Dropdown / Single choice / Multiple choice. Enter them
      comma separated, e.g. `Web, App, AI/ML`.
@@ -74,6 +78,37 @@ and all its registrations.
 | Phone | phone numbers |
 | URL | links |
 
+## Reusable fields and autofill
+
+The club asks the same questions across events (Name, Registration number, Department).
+Two ids make this reuse-friendly:
+
+- **local id** - the answer key inside one event (what you set as "Field id").
+- **global id** - a hidden, auto-generated id that is shared only when you reuse a field.
+
+### Reusing a field
+
+In the builder, click **Reuse earlier field**. You get a list of every field used in
+past events, with its label, type, and how many events use it. Picking one adds a field
+that carries the same **global id**. You can still rename its local id for this event.
+
+### Autofill
+
+When someone registers, their answers are saved per global id on their user profile.
+The next time they open any event whose form reuses one of those fields (same global id),
+that field is **pre-filled** with their last answer. They can edit it before submitting.
+
+Autofill only happens through reuse. A field you type from scratch, even if you label it
+"Name", gets a fresh global id and will not autofill. Reuse from the library is what
+links them.
+
+### Managing field keys
+
+On `/admin/events`, scroll to the **Field keys** panel. It lists every reusable field
+(its label, type, usage count, and global id). Renaming a key's label changes the default
+label shown when you reuse it later. It does not rewrite labels in events that already
+use the field.
+
 ## Data model (Firestore)
 
 ```
@@ -82,14 +117,27 @@ events/{slug}
 
 events/{slug}/registrations/{uid}
   uid, email, name, photoURL, answers, createdAt
+
+users/{uid}
+  ...profile, savedFields: { [globalId]: value }   // remembered for autofill
+
+fieldKeys/{globalId}
+  globalId, label, type, suggestedId, options, updatedAt   // the reusable-field catalog
 ```
 
+- Each field in `fields[]` has both `id` (local) and `globalId`.
 - One registration document per user (the doc id is their uid), so a person can
   only register once per event.
-- `answers` is keyed by **field id**: `{ reg_number: "22BCE1234", track: "Web" }`.
+- `answers` is keyed by **local field id**: `{ reg_number: "22BCE1234", track: "Web" }`.
   Multiple-choice answers are arrays: `{ interests: ["Web", "AI/ML"] }`.
+- `savedFields` is keyed by **global id**, so the same answer can prefill across events.
 
 ## Customising the registration UI
+
+These options apply to the **registration page** (`/events/[slug]/register`). The event
+**details page** (`/events/[slug]`) is not code-overridable; it always uses the theme
+(accent, banner, description, layout). If you need a fully custom details page too, the
+same registry pattern can be added there (ask / extend `getOverride`).
 
 ### 1. Theme only (no code)
 
@@ -157,6 +205,7 @@ What the hook returns:
 | `submit(answers)` | posts the answers, then redirects to success or already-registered |
 | `submitting` | `true` while the submit is in flight |
 | `error` | an error message string, or `null` |
+| `prefill` | remembered answers keyed by local field id; seed your inputs from this for autofill |
 
 **Step 3.** Register the component against the slug:
 
@@ -217,4 +266,7 @@ This keeps the schema and the export in one place while letting the look be anyt
 | `GET /api/events/[slug]/registrations/[id]` | admin | Get one registration |
 | `DELETE /api/events/[slug]/registrations/[id]` | admin | Delete one registration |
 | `GET /api/events/[slug]/registrations/export` | admin | Download registrations as .xlsx |
+| `GET /api/events/[slug]/prefill` | signed-in | Your remembered answers for this event's fields |
 | `GET /api/admin/events` | admin | List all events including drafts |
+| `GET /api/admin/fields` | admin | List reusable fields (the key catalog) |
+| `PATCH /api/admin/fields/[globalId]` | admin | Rename a field key's label |

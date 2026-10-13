@@ -9,16 +9,29 @@ import {
   type FieldType,
   type FormField,
   type EventDoc,
+  type FieldLibraryItem,
 } from "@/lib/event-types";
 import { currentIdToken } from "@/lib/firebase-client";
 
 function newField(): FormField {
   return {
     id: crypto.randomUUID().slice(0, 8),
+    globalId: crypto.randomUUID(),
     type: "short_text",
     label: "",
     required: false,
     options: [],
+  };
+}
+
+function fieldFromLibrary(item: FieldLibraryItem): FormField {
+  return {
+    id: item.suggestedId || crypto.randomUUID().slice(0, 8),
+    globalId: item.globalId,
+    type: item.type,
+    label: item.label,
+    required: false,
+    options: item.options ?? [],
   };
 }
 
@@ -37,6 +50,25 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
   const [fields, setFields] = useState<FormField[]>(initial?.fields ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [library, setLibrary] = useState<FieldLibraryItem[] | null>(null);
+  const [showLibrary, setShowLibrary] = useState(false);
+
+  async function openLibrary() {
+    setShowLibrary(true);
+    if (library) return;
+    const token = await currentIdToken();
+    if (!token) return;
+    const res = await fetch("/api/admin/fields", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (res.ok) setLibrary(data.fields);
+  }
+
+  function reuse(item: FieldLibraryItem) {
+    setFields((p) => [...p, fieldFromLibrary(item)]);
+    setShowLibrary(false);
+  }
 
   function patchField(i: number, patch: Partial<FormField>) {
     setFields((prev) => prev.map((f, idx) => (idx === i ? { ...f, ...patch } : f)));
@@ -175,6 +207,9 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
                 patchField(i, { id: e.target.value.trim().replace(/\s+/g, "_") })
               }
             />
+            <p className="font-mono text-[10px] text-black/30">
+              global: {field.globalId}
+            </p>
 
             {OPTION_TYPES.includes(field.type) && (
               <input
@@ -218,13 +253,63 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
           </div>
         ))}
 
-        <button
-          type="button"
-          onClick={() => setFields((p) => [...p, newField()])}
-          className="self-start rounded-full border border-black/15 px-4 py-2 font-poppins text-sm font-bold text-black"
-        >
-          + Add field
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setFields((p) => [...p, newField()])}
+            className="rounded-full border border-black/15 px-4 py-2 font-poppins text-sm font-bold text-black"
+          >
+            + Add field
+          </button>
+          <button
+            type="button"
+            onClick={openLibrary}
+            className="rounded-full border border-black/15 px-4 py-2 font-poppins text-sm font-bold text-[#8D7FB5]"
+          >
+            Reuse earlier field
+          </button>
+        </div>
+
+        {showLibrary && (
+          <div className="flex flex-col gap-2 rounded-xl border border-black/10 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-poppins text-sm font-bold text-black/70">
+                Fields from earlier events
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowLibrary(false)}
+                className="font-poppins text-xs text-black/40"
+              >
+                Close
+              </button>
+            </div>
+            {!library && (
+              <p className="font-poppins text-xs text-black/40">Loading...</p>
+            )}
+            {library?.length === 0 && (
+              <p className="font-poppins text-xs text-black/40">No fields yet.</p>
+            )}
+            {library?.map((item) => (
+              <button
+                key={item.globalId}
+                type="button"
+                onClick={() => reuse(item)}
+                className="flex items-center justify-between rounded-lg border border-black/10 px-3 py-2 text-left hover:bg-black/5"
+              >
+                <span className="font-poppins text-sm text-black">
+                  {item.label}
+                  <span className="ml-2 text-xs text-black/40">
+                    {FIELD_LABELS[item.type]}
+                  </span>
+                </span>
+                <span className="font-poppins text-xs text-black/40">
+                  used in {item.usedIn}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && <p className="font-poppins text-sm text-red-500">{error}</p>}

@@ -18,6 +18,7 @@ export function useRegister(slug: string) {
   const [ready, setReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefill, setPrefill] = useState<Answers>({});
 
   useEffect(
     () =>
@@ -27,6 +28,25 @@ export function useRegister(slug: string) {
       }),
     [],
   );
+
+  // Autofill from the user's past answers
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    (async () => {
+      const token = await currentIdToken();
+      if (!token) return;
+      const res = await fetch(`/api/events/${slug}/prefill`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (active) setPrefill(data.prefill ?? {});
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user, slug]);
 
   async function signIn() {
     try {
@@ -64,5 +84,5 @@ export function useRegister(slug: string) {
     }
   }
 
-  return { user, ready, submitting, error, signIn, submit };
+  return { user, ready, submitting, error, signIn, submit, prefill };
 }

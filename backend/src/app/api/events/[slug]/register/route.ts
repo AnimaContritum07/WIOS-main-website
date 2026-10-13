@@ -4,6 +4,7 @@ import { ensureUser } from "@/lib/auth";
 import {
   getEvent,
   registrationInputSchema,
+  saveUserFieldValues,
   upsertRegistration,
   validateAnswers,
 } from "@/lib/events";
@@ -26,6 +27,8 @@ export const POST = route(async (req: Request, { params }: Ctx) => {
 
   const { created } = await upsertRegistration(slug, user, clean);
   if (!created) throw new HttpError(409, "already registered");
+
+  await saveUserFieldValues(user.uid, event.fields, clean);
 
   return NextResponse.json({ ok: true }, { status: 201 });
 });
