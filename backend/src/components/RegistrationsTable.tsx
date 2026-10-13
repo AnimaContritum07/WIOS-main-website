@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { EventDoc, Registration } from "@/lib/event-types";
 import { currentIdToken, onAuthChange } from "@/lib/firebase-client";
+import { SkeletonRows } from "./Skeleton";
 
 export default function RegistrationsTable({ event }: { event: EventDoc }) {
   const [rows, setRows] = useState<Registration[] | null>(null);
@@ -48,7 +49,7 @@ export default function RegistrationsTable({ event }: { event: EventDoc }) {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 py-12">
       <div className="flex items-center justify-between">
         <h1 className="font-bebas text-4xl text-black">
-          {event.title} — registrations
+          {event.title} registrations
         </h1>
         <button
           onClick={exportXlsx}
@@ -59,6 +60,8 @@ export default function RegistrationsTable({ event }: { event: EventDoc }) {
       </div>
 
       {error && <p className="font-poppins text-sm text-red-500">{error}</p>}
+
+      {!rows && !error && <SkeletonRows rows={5} />}
 
       {rows && (
         <div className="overflow-x-auto rounded-xl border border-black/10">
@@ -77,7 +80,7 @@ export default function RegistrationsTable({ event }: { event: EventDoc }) {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.uid} className="border-t border-black/5">
-                  <td className="px-3 py-2">{r.name ?? "—"}</td>
+                  <td className="px-3 py-2">{r.name ?? "-"}</td>
                   <td className="px-3 py-2">{r.email}</td>
                   {event.fields.map((f) => {
                     const v = r.answers[f.id];

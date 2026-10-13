@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { EventDoc, EventStatus } from "@/lib/event-types";
 import { currentIdToken, onAuthChange } from "@/lib/firebase-client";
+import { SkeletonRows } from "./Skeleton";
 
 const STATUSES: EventStatus[] = ["draft", "open", "closed"];
 
@@ -73,6 +74,8 @@ export default function EventsAdminList() {
 
       {error && <p className="font-poppins text-sm text-red-500">{error}</p>}
 
+      {!events && !error && <SkeletonRows />}
+
       {events?.map((e) => (
         <div
           key={e.slug}
@@ -105,7 +108,7 @@ export default function EventsAdminList() {
             Edit
           </Link>
           <Link
-            href={`/${e.slug}/register/users`}
+            href={`/events/${e.slug}/register/users`}
             className="rounded-full border border-black/15 px-3 py-1.5 font-poppins text-xs font-bold"
           >
             Registrations

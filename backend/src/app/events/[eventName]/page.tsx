@@ -37,7 +37,7 @@ export default async function EventPage({ params }: Props) {
 
       {event.status === "open" ? (
         <Link
-          href={`/${event.slug}/register`}
+          href={`/events/${event.slug}/register`}
           className="self-start rounded-full px-7 py-3 font-poppins text-sm font-bold text-white"
           style={{ backgroundColor: accent }}
         >

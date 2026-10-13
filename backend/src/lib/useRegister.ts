@@ -51,12 +51,12 @@ export function useRegister(slug: string) {
         body: JSON.stringify({ answers }),
       });
       if (res.status === 409) {
-        router.push(`/${slug}/register/already-registered`);
+        router.push(`/events/${slug}/register/already-registered`);
         return;
       }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "registration failed");
-      router.push(`/${slug}/register/success`);
+      router.push(`/events/${slug}/register/success`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "registration failed");
     } finally {

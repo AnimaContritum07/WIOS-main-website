@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { EventDoc } from "@/lib/event-types";
 import { useRegister } from "@/lib/useRegister";
 import FieldRenderer from "./fields/FieldRenderer";
+import { Skeleton } from "./Skeleton";
 
 type Answers = Record<string, string | string[]>;
 
@@ -77,7 +78,13 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
   );
 
   const content = !ready ? (
-    <p className="font-poppins text-sm text-black/40">Loading…</p>
+    <div className="flex flex-col gap-4">
+      <Skeleton className="h-10 w-2/3" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-12 w-40 rounded-full" />
+    </div>
   ) : user ? (
     form
   ) : (

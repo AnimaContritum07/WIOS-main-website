@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { signInWithGoogle, signOutUser } from "@/lib/firebase-client";
 
 type Me = { email: string; role: string; name: string | null } | null;
 
 export default function GoogleSignInButton() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<Me>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +24,7 @@ export default function GoogleSignInButton() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "sign in failed");
       setUser(data.user);
+      if (data.user?.role === "admin") router.push("/admin/events");
     } catch (e) {
       setError(e instanceof Error ? e.message : "sign in failed");
     } finally {

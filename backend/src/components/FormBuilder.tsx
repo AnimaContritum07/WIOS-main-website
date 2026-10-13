@@ -81,7 +81,7 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "failed to save event");
-      router.push(editing ? "/admin/events" : `/${data.event.slug}`);
+      router.push(editing ? "/admin/events" : `/events/${data.event.slug}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed to save event");
     } finally {
@@ -146,7 +146,7 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
       <div className="flex flex-col gap-4">
         <h2 className="font-poppins text-sm font-bold text-black/70">Fields</h2>
         {fields.map((field, i) => (
-          <div key={field.id} className="flex flex-col gap-2 rounded-xl border border-black/10 p-4">
+          <div key={i} className="flex flex-col gap-2 rounded-xl border border-black/10 p-4">
             <div className="flex gap-2">
               <input
                 className={`${input} flex-1`}
