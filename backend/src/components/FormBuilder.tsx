@@ -8,6 +8,7 @@ import {
   OPTION_TYPES,
   type FieldType,
   type FormField,
+  type EventDoc,
 } from "@/lib/event-types";
 import { currentIdToken } from "@/lib/firebase-client";
 
@@ -24,15 +25,16 @@ function newField(): FormField {
 const input =
   "rounded-lg border border-black/10 px-3 py-2 font-poppins text-sm outline-none focus:border-[#8D7FB5]";
 
-export default function FormBuilder() {
+export default function FormBuilder({ initial }: { initial?: EventDoc }) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("draft");
-  const [accent, setAccent] = useState("#8D7FB5");
-  const [banner, setBanner] = useState("");
-  const [layout, setLayout] = useState("centered");
-  const [fields, setFields] = useState<FormField[]>([]);
+  const editing = !!initial;
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [status, setStatus] = useState<string>(initial?.status ?? "draft");
+  const [accent, setAccent] = useState(initial?.theme?.accent ?? "#8D7FB5");
+  const [banner, setBanner] = useState(initial?.theme?.banner ?? "");
+  const [layout, setLayout] = useState<string>(initial?.theme?.layout ?? "centered");
+  const [fields, setFields] = useState<FormField[]>(initial?.fields ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,19 +68,22 @@ export default function FormBuilder() {
           options: OPTION_TYPES.includes(f.type) ? f.options : undefined,
         })),
       };
-      const res = await fetch("/api/events", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const res = await fetch(
+        editing ? `/api/events/${initial!.slug}` : "/api/events",
+        {
+          method: editing ? "PATCH" : "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
         },
-        body: JSON.stringify(body),
-      });
+      );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "failed to create event");
-      router.push(`/${data.event.slug}`);
+      if (!res.ok) throw new Error(data.error ?? "failed to save event");
+      router.push(editing ? "/admin/events" : `/${data.event.slug}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "failed to create event");
+      setError(err instanceof Error ? err.message : "failed to save event");
     } finally {
       setSaving(false);
     }
@@ -86,7 +91,9 @@ export default function FormBuilder() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 py-12">
-      <h1 className="font-bebas text-4xl text-black">Create event</h1>
+      <h1 className="font-bebas text-4xl text-black">
+        {editing ? `Edit ${initial!.slug}` : "Create event"}
+      </h1>
 
       <div className="flex flex-col gap-3">
         <input
@@ -227,7 +234,7 @@ export default function FormBuilder() {
         disabled={saving || !title}
         className="self-start rounded-full bg-[#8D7FB5] px-6 py-3 font-poppins text-sm font-bold text-white disabled:opacity-60"
       >
-        {saving ? "Saving…" : "Create event"}
+        {saving ? "Saving…" : editing ? "Save changes" : "Create event"}
       </button>
     </div>
   );
