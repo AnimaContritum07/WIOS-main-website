@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import {
   cert,
   getApps,
@@ -13,13 +11,7 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 let app: App | undefined;
 
 function credential(): Credential {
-  const path = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (path) {
-    const json = JSON.parse(readFileSync(resolve(process.cwd(), path), "utf8"));
-    return cert(json);
-  }
-
-  // Whole service-account JSON as one env var (easiest on Vercel)
+  // Whole service-account JSON as one env var
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (raw) {
     return cert(JSON.parse(raw));
@@ -33,7 +25,7 @@ function credential(): Credential {
   }
 
   throw new Error(
-    "Missing Firebase Admin credentials: set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY.",
+    "Missing Firebase Admin credentials: set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY.",
   );
 }
 
