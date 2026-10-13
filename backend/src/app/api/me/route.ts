@@ -1,6 +1,10 @@
-// Starter file. Implement here.
 import { NextResponse } from "next/server";
+import { route } from "@/lib/http";
+import { ensureUser } from "@/lib/auth";
 
-export async function GET() {
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
-}
+export const runtime = "nodejs";
+
+export const GET = route(async (req: Request) => {
+  const user = await ensureUser(req);
+  return NextResponse.json({ user });
+});
