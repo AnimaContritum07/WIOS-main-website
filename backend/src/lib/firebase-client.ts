@@ -1,6 +1,13 @@
 // Browser-only helpers for Google sign-in. Import from client components only.
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  type User,
+} from "firebase/auth";
 
 function app() {
   return getApps().length
@@ -13,18 +20,24 @@ function app() {
       });
 }
 
-// Opens the Google popup and returns a Firebase ID token to send as "Authorization: Bearer <token>".
-// `hd` only hints Google to show college accounts; the backend does the real domain check.
+// Google popup -> Firebase ID token
 export async function signInWithGoogle(): Promise<string> {
   const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({
-    hd: process.env.NEXT_PUBLIC_COLLEGE_EMAIL_DOMAIN ?? "",
-    prompt: "select_account",
-  });
+  provider.setCustomParameters({ prompt: "select_account" });
   const result = await signInWithPopup(getAuth(app()), provider);
   return result.user.getIdToken();
 }
 
 export async function signOutUser() {
   await signOut(getAuth(app()));
+}
+
+// Current user's fresh ID token or null
+export async function currentIdToken(): Promise<string | null> {
+  const user = getAuth(app()).currentUser;
+  return user ? user.getIdToken() : null;
+}
+
+export function onAuthChange(cb: (user: User | null) => void) {
+  return onAuthStateChanged(getAuth(app()), cb);
 }
