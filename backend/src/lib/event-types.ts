@@ -65,6 +65,8 @@ export interface EventDoc {
   bannerUrl?: string;
   location?: string;
   startsAt?: string;
+  registrationDeadline?: string;
+  allowEdit: boolean;
   status: EventStatus;
   theme: EventTheme;
   fields: FormField[];
@@ -80,4 +82,15 @@ export interface Registration {
   photoURL: string | null;
   answers: Record<string, string | string[]>;
   createdAt: string;
+  updatedAt?: string;
+}
+
+// Open if status is open and the deadline has not passed
+export function isRegistrationOpen(event: EventDoc, now: number = Date.now()): boolean {
+  if (event.status !== "open") return false;
+  if (event.registrationDeadline) {
+    const deadline = new Date(event.registrationDeadline).getTime();
+    if (!Number.isNaN(deadline) && now > deadline) return false;
+  }
+  return true;
 }

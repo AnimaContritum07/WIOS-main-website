@@ -24,6 +24,22 @@ function newField(): FormField {
   };
 }
 
+// ISO <-> datetime-local input value
+function isoToLocal(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+
+function localToIso(local: string): string | undefined {
+  if (!local) return undefined;
+  const d = new Date(local);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
 function fieldFromLibrary(item: FieldLibraryItem): FormField {
   return {
     id: item.suggestedId || crypto.randomUUID().slice(0, 8),
@@ -46,6 +62,12 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
   const [status, setStatus] = useState<string>(initial?.status ?? "draft");
   const [accent, setAccent] = useState(initial?.theme?.accent ?? "#8D7FB5");
   const [poster, setPoster] = useState(initial?.theme?.poster ?? "");
+  const [location, setLocation] = useState(initial?.location ?? "");
+  const [startsAt, setStartsAt] = useState(isoToLocal(initial?.startsAt));
+  const [deadline, setDeadline] = useState(
+    isoToLocal(initial?.registrationDeadline),
+  );
+  const [allowEdit, setAllowEdit] = useState(initial?.allowEdit ?? false);
   const [layout, setLayout] = useState<string>(initial?.theme?.layout ?? "centered");
   const [fields, setFields] = useState<FormField[]>(initial?.fields ?? []);
   const [saving, setSaving] = useState(false);
@@ -102,6 +124,10 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
         title,
         description,
         status,
+        allowEdit,
+        location: location || undefined,
+        startsAt: localToIso(startsAt),
+        registrationDeadline: localToIso(deadline),
         theme: { accent, layout, ...(poster ? { poster } : {}) },
         fields: fields.map((f) => ({
           ...f,
@@ -143,11 +169,45 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
           onChange={(e) => setTitle(e.target.value)}
         />
         <textarea
-          className={input}
-          placeholder="Description"
+          className={`${input} min-h-28`}
+          placeholder="Description (Markdown supported)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+        <input
+          className={input}
+          placeholder="Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1 font-poppins text-xs text-black/60">
+            Event date & time
+            <input
+              type="datetime-local"
+              className={input}
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 font-poppins text-xs text-black/60">
+            Registration closes
+            <input
+              type="datetime-local"
+              className={input}
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+            />
+          </label>
+        </div>
+        <label className="flex items-center gap-2 font-poppins text-sm">
+          <input
+            type="checkbox"
+            checked={allowEdit}
+            onChange={(e) => setAllowEdit(e.target.checked)}
+          />
+          Let users edit their registration while open
+        </label>
         <div className="grid grid-cols-2 gap-3">
           <select
             className={input}
