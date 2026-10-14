@@ -31,7 +31,7 @@ export default function Hero() {
   return (
     <section
       className="no-select relative min-h-screen w-full overflow-hidden bg-cover bg-center"
-      style={{ backgroundImage: "url(/hero_bg.png)" }}
+      style={{ backgroundImage: "url(/hero_bg.webp)" }}
     >
       <motion.div
         className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col justify-center gap-12 px-10 pt-24 lg:flex-row lg:items-center lg:justify-between"
