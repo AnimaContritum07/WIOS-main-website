@@ -4,7 +4,7 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { type EventDoc, isRegistrationOpen } from "@/lib/event-types";
-import { C, Shell, fmtDateTime } from "./theme";
+import { C, Shell, GhostTitle, fmtDateTime } from "./theme";
 
 export default function CaptureTheGhostDetails({ event }: { event: EventDoc }) {
   const open = isRegistrationOpen(event);
@@ -21,29 +21,54 @@ export default function CaptureTheGhostDetails({ event }: { event: EventDoc }) {
           />
         )}
 
-        <div>
-          <p
-            className="text-xs font-bold uppercase tracking-[0.3em]"
-            style={{ color: C.accent }}
-          >
-            Halloween CTF
-          </p>
-          <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
-            {event.title}
-          </h1>
-        </div>
+        <GhostTitle title={event.title} />
 
-        <div
-          className="flex flex-wrap gap-x-8 gap-y-2 text-sm font-bold"
-          style={{ color: C.muted }}
-        >
-          {event.startsAt && <span>When: {fmt(event.startsAt)}</span>}
-          {event.location && <span>Where: {event.location}</span>}
-        </div>
+        {(event.startsAt || event.location) && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {event.startsAt && (
+              <div
+                className="border-l-2 py-1 pl-4"
+                style={{ borderColor: C.accent }}
+              >
+                <p
+                  className="text-[0.7rem] font-bold uppercase tracking-[0.25em]"
+                  style={{ color: C.accent }}
+                >
+                  When
+                </p>
+                <p
+                  className="mt-1.5 text-lg font-bold leading-tight"
+                  style={{ color: C.text }}
+                >
+                  {fmt(event.startsAt)}
+                </p>
+              </div>
+            )}
+            {event.location && (
+              <div
+                className="border-l-2 py-1 pl-4"
+                style={{ borderColor: C.gold }}
+              >
+                <p
+                  className="text-[0.7rem] font-bold uppercase tracking-[0.25em]"
+                  style={{ color: C.gold }}
+                >
+                  Where
+                </p>
+                <p
+                  className="mt-1.5 text-lg font-bold leading-tight"
+                  style={{ color: C.text }}
+                >
+                  {event.location}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {event.description && (
           <div
-            className="border p-6"
+            className="border p-6 backdrop-blur-sm"
             style={{ borderColor: C.line, backgroundColor: C.panel }}
           >
             <div
@@ -58,9 +83,20 @@ export default function CaptureTheGhostDetails({ event }: { event: EventDoc }) {
         )}
 
         {event.registrationDeadline && (
-          <p className="text-sm" style={{ color: C.muted }}>
-            Registration closes {fmt(event.registrationDeadline)}
-          </p>
+          <div
+            className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border px-4 py-3 backdrop-blur-sm"
+            style={{ borderColor: C.line, backgroundColor: C.panel }}
+          >
+            <span
+              className="text-[0.7rem] font-bold uppercase tracking-[0.25em]"
+              style={{ color: C.danger }}
+            >
+              Registration closes
+            </span>
+            <span className="text-sm font-bold" style={{ color: C.text }}>
+              {fmt(event.registrationDeadline)}
+            </span>
+          </div>
         )}
 
         {open ? (

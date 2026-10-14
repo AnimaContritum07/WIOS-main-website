@@ -2,25 +2,17 @@
 
 import Link from "next/link";
 import type { EventDoc } from "@/lib/event-types";
-import { C, Shell } from "./theme";
+import { C, Shell, GhostTitle } from "./theme";
 
 export default function CaptureTheGhostAlready({ event }: { event: EventDoc }) {
   return (
     <Shell>
       <div
-        className="w-full max-w-2xl border p-7 sm:p-11"
+        className="w-full max-w-2xl border p-7 backdrop-blur-sm sm:p-11"
         style={{ backgroundColor: C.panel, borderColor: C.line }}
       >
-        <p
-          className="text-xs font-bold uppercase tracking-[0.3em]"
-          style={{ color: C.accent }}
-        >
-          Halloween CTF
-        </p>
-        <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
-          Already registered
-        </h1>
-        <p className="mt-4 text-base" style={{ color: C.muted }}>
+        <GhostTitle title={event.title} className="text-3xl sm:text-5xl" />
+        <p className="mt-6 text-base" style={{ color: C.muted }}>
           You&apos;ve already claimed your spot for this event.
         </p>
 
