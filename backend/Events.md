@@ -36,7 +36,14 @@ More on these below.
 2. Click **+ New event**.
 3. Fill in the basics:
    - **Title** - becomes the name and the URL slug.
-   - **Description** - shown on the event page.
+   - **Description** - shown on the event page. **Markdown is supported** (headings,
+     bold, lists, links), rendered on the event and register pages.
+   - **Location** - optional, shown on the event page.
+   - **Event date & time** - when the event happens, shown on the event page.
+   - **Registration closes** - the last date/time to register. After this, signups
+     stop automatically even if the status is still `open`.
+   - **Let users edit their registration** - if ticked, a registered user can reopen
+     the register page and update their answers while registration is still open.
    - **Status** - `draft` (hidden), `open` (accepting registrations), or
      `closed` (visible but no new signups).
    - **Theme** - accent colour, layout (`centered` or `split`), and an optional
@@ -113,10 +120,11 @@ use the field.
 
 ```
 events/{slug}
-  title, description, status, theme, fields[], createdBy, createdAt, updatedAt
+  title, description (markdown), location, startsAt, registrationDeadline,
+  allowEdit, status, theme, fields[], createdBy, createdAt, updatedAt
 
 events/{slug}/registrations/{uid}
-  uid, email, name, photoURL, answers, createdAt
+  uid, email, name, photoURL, answers, createdAt, updatedAt
 
 users/{uid}
   ...profile, savedFields: { [globalId]: value }   // remembered for autofill
@@ -206,6 +214,8 @@ What the hook returns:
 | `submitting` | `true` while the submit is in flight |
 | `error` | an error message string, or `null` |
 | `prefill` | remembered answers keyed by local field id; seed your inputs from this for autofill |
+| `registration` | the user's existing registration for this event, or `null` (use for edit mode) |
+| `loaded` | `false` until prefill + existing registration have been fetched |
 
 **Step 3.** Register the component against the slug and the page (surface) you want to
 override:
@@ -243,8 +253,21 @@ await fetch(`/api/events/${slug}/register`, {
   },
   body: JSON.stringify({ answers: { reg_number: "22BCE1234" } }),
 });
-// 201 = registered, 409 = already registered, 403 = not open
+// 201 = registered, 200 = updated (edit), 409 = already registered, 403 = closed
 ```
+
+### Deadline, closed state, and editing in custom pages
+
+Custom components get the full `event`, so you control all of this yourself:
+
+- `event.registrationDeadline` - the deadline (ISO string); format and show it however you like.
+- `isRegistrationOpen(event)` (from `@/lib/event-types`) - `true` only while status is
+  `open` and the deadline has not passed. Use it to show a "closed" state.
+- `event.allowEdit` + the hook's `registration` - if a registration exists and editing is
+  allowed, seed your form from `registration.answers` and submit to update it. If editing
+  is off and a registration exists, show an "already registered" message instead.
+
+The default `DynamicForm` already does all of the above.
 
 ## One rule to remember: answer ids must match fields
 

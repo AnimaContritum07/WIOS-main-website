@@ -44,6 +44,8 @@ export const eventInputSchema = z.object({
   bannerUrl: z.string().url().optional(),
   location: z.string().optional(),
   startsAt: z.string().optional(),
+  registrationDeadline: z.string().optional(),
+  allowEdit: z.boolean().default(false),
   status: z.enum(["draft", "open", "closed"]).default("draft"),
   theme: themeSchema.default({ accent: "#8D7FB5", layout: "centered" }),
   fields: z.array(fieldSchema).default([]),
@@ -138,6 +140,8 @@ function serializeEvent(id: string, data: FirebaseFirestore.DocumentData): Event
     bannerUrl: data.bannerUrl,
     location: data.location,
     startsAt: data.startsAt,
+    registrationDeadline: data.registrationDeadline,
+    allowEdit: data.allowEdit ?? false,
     status: data.status ?? "draft",
     theme: data.theme ?? { accent: "#8D7FB5", layout: "centered" },
     fields: data.fields ?? [],
@@ -158,6 +162,7 @@ function serializeRegistration(
     photoURL: data.photoURL ?? null,
     answers: data.answers ?? {},
     createdAt: toIso(data.createdAt),
+    updatedAt: data.updatedAt ? toIso(data.updatedAt) : undefined,
   };
 }
 
@@ -214,10 +219,19 @@ export async function upsertRegistration(
   slug: string,
   user: UserProfile,
   answers: Record<string, string | string[]>,
-): Promise<{ created: boolean }> {
+  allowUpdate = false,
+): Promise<{ created: boolean; updated: boolean }> {
   const ref = db.collection("events").doc(slug).collection("registrations").doc(user.uid);
   const existing = await ref.get();
-  if (existing.exists) return { created: false };
+
+  if (existing.exists) {
+    if (!allowUpdate) return { created: false, updated: false };
+    await ref.set(
+      { answers, updatedAt: FieldValue.serverTimestamp() },
+      { merge: true },
+    );
+    return { created: false, updated: true };
+  }
 
   await ref.set({
     uid: user.uid,
@@ -227,7 +241,7 @@ export async function upsertRegistration(
     answers,
     createdAt: FieldValue.serverTimestamp(),
   });
-  return { created: true };
+  return { created: true, updated: false };
 }
 
 export async function getRegistration(

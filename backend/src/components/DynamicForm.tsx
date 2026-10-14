@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { EventDoc } from "@/lib/event-types";
+import Link from "next/link";
+import { type EventDoc, isRegistrationOpen } from "@/lib/event-types";
 import { useRegister } from "@/lib/useRegister";
 import FieldRenderer from "./fields/FieldRenderer";
+import Markdown from "./Markdown";
 import { Skeleton } from "./Skeleton";
 
 type Answers = Record<string, string | string[]>;
@@ -12,17 +14,22 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
   const accent = event.theme?.accent ?? "#8D7FB5";
   const split = event.theme?.layout === "split";
   const banner = event.theme?.poster ?? event.bannerUrl;
+  const deadline = event.registrationDeadline
+    ? new Date(event.registrationDeadline).toLocaleString()
+    : null;
 
-  const { user, ready, submitting, error, signIn, submit, prefill } = useRegister(
-    event.slug,
-  );
+  const { user, ready, submitting, error, signIn, submit, prefill, registration, loaded } =
+    useRegister(event.slug);
   const [answers, setAnswers] = useState<Answers>({});
 
-  // Seed untouched fields with remembered answers
+  // Seed with existing registration (edit) or remembered answers
   useEffect(() => {
-    if (Object.keys(prefill).length === 0) return;
-    setAnswers((prev) => ({ ...prefill, ...prev }));
-  }, [prefill]);
+    if (registration) {
+      setAnswers(registration.answers);
+    } else if (Object.keys(prefill).length > 0) {
+      setAnswers((prev) => ({ ...prefill, ...prev }));
+    }
+  }, [prefill, registration]);
 
   function setAnswer(id: string, value: string | string[]) {
     setAnswers((prev) => ({ ...prev, [id]: value }));
@@ -33,18 +40,35 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
     await submit(answers);
   }
 
+  const editing = !!registration && event.allowEdit;
+
+  const header = (
+    <div>
+      <h1 className="font-bebas text-4xl leading-none text-black">
+        {event.title}
+      </h1>
+      {event.description && (
+        <div className="mt-2 text-sm">
+          <Markdown>{event.description}</Markdown>
+        </div>
+      )}
+      {deadline && (
+        <p className="mt-2 font-poppins text-xs text-black/50">
+          Registration closes {deadline}
+        </p>
+      )}
+    </div>
+  );
+
   const form = (
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
-      <div>
-        <h1 className="font-bebas text-4xl leading-none text-black">
-          {event.title}
-        </h1>
-        {event.description && (
-          <p className="mt-2 font-poppins text-sm text-black/60">
-            {event.description}
-          </p>
-        )}
-      </div>
+      {header}
+
+      {editing && (
+        <p className="rounded-lg bg-[#8D7FB5]/10 px-3 py-2 font-poppins text-xs text-[#8D7FB5]">
+          You already registered. Update your answers below.
+        </p>
+      )}
 
       {event.fields.map((field) => (
         <FieldRenderer
@@ -64,7 +88,11 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
         className="mt-2 rounded-full px-6 py-3 font-poppins text-sm font-bold text-white disabled:opacity-60"
         style={{ backgroundColor: accent }}
       >
-        {submitting ? "Submitting…" : "Submit registration"}
+        {submitting
+          ? "Submitting…"
+          : editing
+            ? "Update registration"
+            : "Submit registration"}
       </button>
     </form>
   );
@@ -85,7 +113,32 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
     </div>
   );
 
-  const content = !ready ? (
+  const alreadyRegistered = (
+    <div className="flex flex-col items-center gap-4 text-center">
+      <h1 className="font-bebas text-4xl text-black">{event.title}</h1>
+      <p className="font-poppins text-sm text-black/60">
+        You&apos;re already registered for this event.
+      </p>
+      <Link
+        href={`/events/${event.slug}`}
+        className="rounded-full px-6 py-3 font-poppins text-sm font-bold text-white"
+        style={{ backgroundColor: accent }}
+      >
+        Back to event
+      </Link>
+    </div>
+  );
+
+  const closed = (
+    <div className="flex flex-col items-center gap-3 text-center">
+      <h1 className="font-bebas text-4xl text-black">{event.title}</h1>
+      <p className="font-poppins text-sm font-bold text-black/40">
+        Registrations are closed.
+      </p>
+    </div>
+  );
+
+  const loading = (
     <div className="flex flex-col gap-4">
       <Skeleton className="h-10 w-2/3" />
       <Skeleton className="h-11 w-full" />
@@ -93,11 +146,15 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
       <Skeleton className="h-11 w-full" />
       <Skeleton className="h-12 w-40 rounded-full" />
     </div>
-  ) : user ? (
-    form
-  ) : (
-    signInGate
   );
+
+  let content: React.ReactNode;
+  if (!ready) content = loading;
+  else if (!user) content = signInGate;
+  else if (!loaded) content = loading;
+  else if (!isRegistrationOpen(event)) content = closed;
+  else if (registration && !event.allowEdit) content = alreadyRegistered;
+  else content = form;
 
   if (split && banner) {
     return (

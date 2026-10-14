@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
+import type { Registration } from "@/lib/event-types";
 import {
   currentIdToken,
   onAuthChange,
@@ -19,6 +20,8 @@ export function useRegister(slug: string) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prefill, setPrefill] = useState<Answers>({});
+  const [registration, setRegistration] = useState<Registration | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(
     () =>
@@ -29,19 +32,30 @@ export function useRegister(slug: string) {
     [],
   );
 
-  // Autofill from the user's past answers
+  // Load autofill + any existing registration
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoaded(true);
+      return;
+    }
     let active = true;
+    setLoaded(false);
     (async () => {
       const token = await currentIdToken();
       if (!token) return;
-      const res = await fetch(`/api/events/${slug}/prefill`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (active) setPrefill(data.prefill ?? {});
+      const headers = { Authorization: `Bearer ${token}` };
+      const [pre, reg] = await Promise.all([
+        fetch(`/api/events/${slug}/prefill`, { headers }).then((r) =>
+          r.ok ? r.json() : null,
+        ),
+        fetch(`/api/events/${slug}/registration`, { headers }).then((r) =>
+          r.ok ? r.json() : null,
+        ),
+      ]);
+      if (!active) return;
+      if (pre) setPrefill(pre.prefill ?? {});
+      setRegistration(reg?.registration ?? null);
+      setLoaded(true);
     })();
     return () => {
       active = false;
@@ -84,5 +98,15 @@ export function useRegister(slug: string) {
     }
   }
 
-  return { user, ready, submitting, error, signIn, submit, prefill };
+  return {
+    user,
+    ready,
+    submitting,
+    error,
+    signIn,
+    submit,
+    prefill,
+    registration,
+    loaded,
+  };
 }
