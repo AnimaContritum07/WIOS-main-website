@@ -11,7 +11,9 @@ import {
   type EventDoc,
   type FieldLibraryItem,
 } from "@/lib/event-types";
+import type { EventImage } from "@/modules/events";
 import { currentIdToken } from "@/lib/firebase-client";
+import PhotoUploader from "@/components/PhotoUploader";
 
 function newField(): FormField {
   return {
@@ -70,6 +72,9 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
   const [allowEdit, setAllowEdit] = useState(initial?.allowEdit ?? false);
   const [layout, setLayout] = useState<string>(initial?.theme?.layout ?? "centered");
   const [fields, setFields] = useState<FormField[]>(initial?.fields ?? []);
+  const [images, setImages] = useState<EventImage[]>(
+    (initial?.images as EventImage[]) ?? [],
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [library, setLibrary] = useState<FieldLibraryItem[] | null>(null);
@@ -120,15 +125,21 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
     try {
       const token = await currentIdToken();
       if (!token) throw new Error("sign in as admin first");
+      const primaryPoster = images[0]?.url || (poster ? poster : undefined);
       const body = {
         title,
         description,
         status,
         allowEdit,
         location: location || undefined,
+        images,
         startsAt: localToIso(startsAt),
         registrationDeadline: localToIso(deadline),
-        theme: { accent, layout, ...(poster ? { poster } : {}) },
+        theme: {
+          accent,
+          layout,
+          ...(primaryPoster ? { poster: primaryPoster } : {}),
+        },
         fields: fields.map((f) => ({
           ...f,
           options: OPTION_TYPES.includes(f.type) ? f.options : undefined,
@@ -180,6 +191,16 @@ export default function FormBuilder({ initial }: { initial?: EventDoc }) {
           value={location}
           onChange={(e) => setLocation(e.target.value)}
         />
+
+        {/* Event Images (UploadThing) */}
+        <div className="rounded-xl border border-black/10 bg-black/[0.01] p-4">
+          <PhotoUploader
+            images={images}
+            onChange={setImages}
+            eventId={initial?.id ?? initial?.slug}
+            disabled={saving}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 font-poppins text-xs text-black/60">
             Event date & time

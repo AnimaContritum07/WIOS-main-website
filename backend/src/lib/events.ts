@@ -38,9 +38,21 @@ const themeSchema = z.object({
   layout: z.enum(["centered", "split"]).default("centered"),
 });
 
+const imageSchema = z.object({
+  url: z.string().url(),
+  key: z.string().min(1),
+  alt: z.string().optional().default(""),
+  uploadedAt: z.string().optional().default(() => new Date().toISOString()),
+});
+
 export const eventInputSchema = z.object({
   title: z.string().min(1),
+  slug: z.string().optional(),
   description: z.string().default(""),
+  date: z.string().optional(),
+  venue: z.string().optional(),
+  category: z.string().optional().default("General"),
+  images: z.array(imageSchema).optional().default([]),
   bannerUrl: z.string().url().optional(),
   location: z.string().optional(),
   startsAt: z.string().optional(),
@@ -133,14 +145,42 @@ function toIso(value: unknown): string {
 }
 
 function serializeEvent(id: string, data: FirebaseFirestore.DocumentData): EventDoc {
+  const images = Array.isArray(data.images)
+    ? data.images.map((img: Record<string, unknown>) => ({
+        url: String(img.url ?? ""),
+        key: String(img.key ?? ""),
+        alt: img.alt != null ? String(img.alt) : "",
+        uploadedAt: img.uploadedAt ? toIso(img.uploadedAt) : new Date().toISOString(),
+      }))
+    : data.bannerUrl
+      ? [
+          {
+            url: String(data.bannerUrl),
+            key: "banner",
+            alt: String(data.title ?? "Event banner"),
+            uploadedAt: toIso(data.createdAt),
+          },
+        ]
+      : [];
+
+  const date = data.date || data.startsAt || "";
+  const venue = data.venue || data.location || "";
+  const category = data.category || "General";
+  const slug = data.slug || id;
+
   return {
-    slug: id,
+    id: data.id || id,
+    slug,
     title: data.title ?? "",
     description: data.description ?? "",
-    bannerUrl: data.bannerUrl,
-    location: data.location,
-    startsAt: data.startsAt,
-    registrationDeadline: data.registrationDeadline,
+    date,
+    venue,
+    category,
+    images,
+    bannerUrl: data.bannerUrl ?? (images[0]?.url || undefined),
+    location: venue,
+    startsAt: date,
+    registrationDeadline: data.registrationDeadline ? toIso(data.registrationDeadline) : undefined,
     allowEdit: data.allowEdit ?? false,
     status: data.status ?? "draft",
     theme: data.theme ?? { accent: "#8D7FB5", layout: "centered" },
@@ -172,16 +212,30 @@ export async function listEvents(publicOnly: boolean): Promise<EventDoc[]> {
   return publicOnly ? events.filter((e) => e.status !== "draft") : events;
 }
 
-export async function getEvent(slug: string): Promise<EventDoc | null> {
-  const snap = await db.collection("events").doc(slug).get();
-  return snap.exists ? serializeEvent(snap.id, snap.data()!) : null;
+export async function getEvent(idOrSlug: string): Promise<EventDoc | null> {
+  const trimmed = idOrSlug.trim();
+  if (!trimmed) return null;
+
+  // 1. Direct document ID
+  const snap = await db.collection("events").doc(trimmed).get();
+  if (snap.exists) return serializeEvent(snap.id, snap.data()!);
+
+  // 2. Slug match
+  const slugSnap = await db.collection("events").where("slug", "==", trimmed).limit(1).get();
+  if (!slugSnap.empty) return serializeEvent(slugSnap.docs[0].id, slugSnap.docs[0].data());
+
+  // 3. ID field match
+  const idSnap = await db.collection("events").where("id", "==", trimmed).limit(1).get();
+  if (!idSnap.empty) return serializeEvent(idSnap.docs[0].id, idSnap.docs[0].data());
+
+  return null;
 }
 
 export async function createEvent(
   input: EventInput,
   uid: string,
 ): Promise<EventDoc> {
-  const slug = slugify(input.title);
+  const slug = input.slug?.trim() || slugify(input.title);
   if (!slug) throw new HttpError(400, "invalid title");
 
   const ref = db.collection("events").doc(slug);
@@ -190,7 +244,26 @@ export async function createEvent(
 
   const fields = normalizeFields(input.fields);
   const now = Timestamp.now();
-  await ref.set({ ...input, fields, slug, createdBy: uid, createdAt: now, updatedAt: now });
+  const date = input.date || input.startsAt || "";
+  const venue = input.venue || input.location || "";
+  const category = input.category || "General";
+  const images = input.images || [];
+
+  await ref.set({
+    ...input,
+    id: slug,
+    slug,
+    date,
+    venue,
+    location: venue,
+    startsAt: date,
+    category,
+    images,
+    fields,
+    createdBy: uid,
+    createdAt: now,
+    updatedAt: now,
+  });
   await upsertFieldKeys(fields);
   return (await getEvent(slug))!;
 }
@@ -199,16 +272,40 @@ export async function updateEvent(
   slug: string,
   patch: Partial<EventInput>,
 ): Promise<EventDoc> {
-  const ref = db.collection("events").doc(slug);
-  if (!(await ref.get()).exists) throw new HttpError(404, "event not found");
+  const existing = await getEvent(slug);
+  if (!existing) throw new HttpError(404, "event not found");
 
+  const ref = db.collection("events").doc(existing.id || existing.slug);
   const fields = patch.fields ? normalizeFields(patch.fields) : undefined;
-  await ref.set(
-    { ...patch, ...(fields ? { fields } : {}), updatedAt: Timestamp.now() },
-    { merge: true },
-  );
+
+  const updateData: Record<string, unknown> = {
+    ...patch,
+    updatedAt: Timestamp.now(),
+  };
+
+  if (patch.date) {
+    updateData.date = patch.date;
+    updateData.startsAt = patch.date;
+  } else if (patch.startsAt) {
+    updateData.date = patch.startsAt;
+    updateData.startsAt = patch.startsAt;
+  }
+
+  if (patch.venue) {
+    updateData.venue = patch.venue;
+    updateData.location = patch.venue;
+  } else if (patch.location) {
+    updateData.venue = patch.location;
+    updateData.location = patch.location;
+  }
+
+  if (fields) {
+    updateData.fields = fields;
+  }
+
+  await ref.set(updateData, { merge: true });
   if (fields) await upsertFieldKeys(fields);
-  return (await getEvent(slug))!;
+  return (await getEvent(existing.slug))!;
 }
 
 export async function deleteEvent(slug: string): Promise<void> {

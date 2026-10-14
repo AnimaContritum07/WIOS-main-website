@@ -58,10 +58,22 @@ export interface EventTheme {
   layout: "centered" | "split";
 }
 
+export interface EventImage {
+  url: string;
+  key: string;
+  alt?: string;
+  uploadedAt?: string;
+}
+
 export interface EventDoc {
+  id?: string;
   slug: string;
   title: string;
   description: string;
+  date?: string;
+  venue?: string;
+  category?: string;
+  images?: EventImage[];
   bannerUrl?: string;
   location?: string;
   startsAt?: string;
@@ -73,6 +85,7 @@ export interface EventDoc {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  isSeeded?: boolean;
 }
 
 export interface Registration {
