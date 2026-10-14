@@ -1,1 +1,1 @@
-// Intentionally blank starter file. Add implementation here.
+export * from "../events/events.service";
