@@ -37,9 +37,9 @@ const CORE = [
 ] as const;
 
 const MEMBERS = [
-  { id: "b27ada53", label: "Member 1", type: "text", required: true },
-  { id: "f6aa53c1", label: "Member 2", type: "text", required: false },
-  { id: "56d5b210", label: "Member 3", type: "text", required: false },
+  { id: "b27ada53", label: "Leader", type: "text", required: true },
+  { id: "f6aa53c1", label: "Member 1", type: "text", required: false },
+  { id: "56d5b210", label: "Member 2", type: "text", required: false },
 ] as const;
 
 // Faint tiled bat motif as the background image
