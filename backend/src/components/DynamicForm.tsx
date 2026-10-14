@@ -15,7 +15,14 @@ export default function DynamicForm({ event }: { event: EventDoc }) {
   const split = event.theme?.layout === "split";
   const banner = event.theme?.poster ?? event.bannerUrl;
   const deadline = event.registrationDeadline
-    ? new Date(event.registrationDeadline).toLocaleString()
+    ? new Date(event.registrationDeadline).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
     : null;
 
   const { user, ready, submitting, error, signIn, submit, prefill, registration, loaded } =

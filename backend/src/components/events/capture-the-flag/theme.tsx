@@ -5,6 +5,18 @@ import { Space_Mono } from "next/font/google";
 
 export const mono = Space_Mono({ weight: ["400", "700"], subsets: ["latin"] });
 
+// DD/MM/YYYY, hh:mm (Indian format)
+export function fmtDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 export const C = {
   bg: "#1A0F08",
   panel: "#221409",

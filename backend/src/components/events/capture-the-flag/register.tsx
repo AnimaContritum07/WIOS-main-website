@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { type EventDoc, isRegistrationOpen } from "@/lib/event-types";
 import { useRegister } from "@/lib/useRegister";
-import { C, Shell } from "./theme";
+import { C, Shell, fmtDateTime } from "./theme";
 
 type Answers = Record<string, string>;
 
@@ -38,7 +38,7 @@ export default function CaptureTheGhostRegister({ event }: { event: EventDoc }) 
 
   const editing = !!registration && event.allowEdit;
   const deadline = event.registrationDeadline
-    ? new Date(event.registrationDeadline).toLocaleString()
+    ? fmtDateTime(event.registrationDeadline)
     : null;
 
   async function handleSubmit(e: React.FormEvent) {

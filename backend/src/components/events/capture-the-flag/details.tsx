@@ -4,12 +4,12 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { type EventDoc, isRegistrationOpen } from "@/lib/event-types";
-import { C, Shell } from "./theme";
+import { C, Shell, fmtDateTime } from "./theme";
 
 export default function CaptureTheGhostDetails({ event }: { event: EventDoc }) {
   const open = isRegistrationOpen(event);
   const poster = event.theme?.poster ?? event.bannerUrl;
-  const fmt = (iso: string) => new Date(iso).toLocaleString();
+  const fmt = fmtDateTime;
 
   return (
     <Shell center={false}>

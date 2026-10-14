@@ -20,7 +20,15 @@ export default async function EventPage({ params }: Props) {
   const accent = event.theme?.accent ?? "#8D7FB5";
   const poster = event.theme?.poster ?? event.bannerUrl;
   const open = isRegistrationOpen(event);
-  const fmt = (iso: string) => new Date(iso).toLocaleString();
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-6 py-16">
