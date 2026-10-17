@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { route, readJson } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth";
@@ -8,8 +9,9 @@ export const runtime = "nodejs";
 
 export const DELETE = route(async (req: Request) => {
   await requireAdmin(req);
+
   let key: string | null = null;
-  let eventId: string | undefined = undefined;
+  let eventId: string | undefined;
 
   const url = new URL(req.url);
   key = url.searchParams.get("key");
@@ -18,6 +20,7 @@ export const DELETE = route(async (req: Request) => {
   if (!key) {
     const body = await readJson(req).catch(() => ({}));
     const parsed = deleteImageInputSchema.safeParse(body);
+
     if (parsed.success) {
       key = parsed.data.key;
       eventId = parsed.data.eventId ?? eventId;
@@ -26,12 +29,24 @@ export const DELETE = route(async (req: Request) => {
 
   if (!key) {
     return NextResponse.json(
-      { error: "Image key is required to delete" },
+      { ok: false, error: "Image key is required to delete" },
       { status: 400 },
     );
   }
 
   const result = await deleteEventImage(key, eventId);
+
+  if (!result.success) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: result.error ?? "Failed to delete image from UploadThing",
+        uploadThingResult: result,
+      },
+      { status: 502 },
+    );
+  }
+
   return NextResponse.json({
     ok: true,
     message: "Image deleted successfully",
@@ -41,10 +56,23 @@ export const DELETE = route(async (req: Request) => {
 
 export const POST = route(async (req: Request) => {
   await requireAdmin(req);
+
   const body = await readJson(req);
   const { key, eventId } = deleteImageInputSchema.parse(body);
 
   const result = await deleteEventImage(key, eventId);
+
+  if (!result.success) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: result.error ?? "Failed to delete image from UploadThing",
+        uploadThingResult: result,
+      },
+      { status: 502 },
+    );
+  }
+
   return NextResponse.json({
     ok: true,
     message: "Image deleted successfully",
